@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0B0E14">
+  <meta name="description" content="Nebulix — локальный ИИ-агент для генерации 4K-изображений в браузере. Без сервера, полностью приватно.">
+  <meta name="application-name" content="Nebulix">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nebulix">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%230B0E14' stroke='%2388C0D0' stroke-width='16'/%3E%3Cpath d='M256 128 L320 240 L192 240 Z' fill='%2388C0D0' opacity='0.9'/%3E%3C/svg%3E">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://huggingface.co">
+  <title>Nebulix — ИИ Генератор Изображений</title>
+  <link rel="stylesheet" href="nebula-style.css">
+</head>
+<body>
+  <div class="aurora-bg" aria-hidden="true"></div>
+  
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo-container">
+        <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M16 8 L24 18 L8 18 Z" fill="currentColor" opacity="0.8"/>
+        </svg>
+        <span class="logo-text">Nebulix</span>
+        <span class="badge">4K</span>
+      </div>
+      <div class="header-actions">
+        <button id="install-pwa-btn" class="icon-btn" style="display: none;" aria-label="Установить приложение" title="Установить Nebulix">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 16V4M8 12L12 16L16 12"/>
+            <rect x="4" y="18" width="16" height="2"/>
+          </svg>
+        </button>
+        <button id="clear-chat-btn" class="icon-btn" aria-label="Очистить историю" title="Новый чат">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6H5H21M10 11V17M14 11V17M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"/>
+          </svg>
+        </button>
+        <button id="settings-btn" class="icon-btn" aria-label="Настройки" title="Настройки">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+            <path d="M19.4 15C18.9 16.1 18.1 17 17.2 17.7L18.5 20.5L15.5 21.5L14.3 18.5C13.7 18.8 13 18.9 12.3 18.9H11.7C11 18.9 10.3 18.8 9.7 18.5L8.5 21.5L5.5 20.5L6.8 17.7C5.9 17 5.1 16.1 4.6 15L2 14L3 11L5.5 10.5C5.6 9.8 5.8 9.2 6.1 8.6L4.5 6.5L7.5 5L9.1 7.5C9.7 7.2 10.3 7 11 6.9V4H13V6.9C13.7 7 14.3 7.2 14.9 7.5L16.5 5L19.5 6.5L17.9 8.6C18.2 9.2 18.4 9.8 18.5 10.5L21 11L20 14L19.4 15Z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="chat-main">
+      <div id="chat-container" class="chat-container" role="log" aria-live="polite" aria-label="История диалога">
+        <!-- Приветственное сообщение будет добавлено через JS -->
+        <div class="message message-ai welcome-message">
+          <div class="message-avatar">✨</div>
+          <div class="message-content">
+            <p>Привет! Я Nebulix — ваш локальный ИИ-генератор 4K-изображений.</p>
+            <p>Всё работает полностью в вашем браузере, без отправки данных на сервер. WebGPU ускоряет генерацию, а модель кэшируется для офлайн-работы.</p>
+            <p>Опишите желаемое изображение в поле ниже, и через 20-40 секунд получите 4K-результат.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="image-result-container" class="image-result-container" style="display: none;">
+        <div class="result-header">
+          <span class="result-title">Сгенерированное изображение</span>
+          <div class="result-actions">
+            <button id="download-image-btn" class="icon-btn" aria-label="Скачать" title="Скачать PNG">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"/>
+                <path d="M7 10L12 15L17 10"/>
+                <path d="M12 15V3"/>
+              </svg>
+            </button>
+            <button id="copy-prompt-btn" class="icon-btn" aria-label="Копировать промпт" title="Копировать промпт">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="image-wrapper">
+          <canvas id="generated-canvas" class="generated-canvas" width="3840" height="2160" style="width: 100%; height: auto;"></canvas>
+          <div class="image-overlay" id="generation-overlay">
+            <div class="swirl-particles" id="swirl-particles"></div>
+          </div>
+        </div>
+        <div class="image-metadata" id="image-metadata">
+          <span id="metadata-resolution">3840x2160</span>
+          <span class="separator">·</span>
+          <span id="metadata-seed">Seed: —</span>
+          <span class="separator">·</span>
+          <span id="metadata-steps">Шаги: 4/4</span>
+          <span class="separator">·</span>
+          <span id="metadata-time">0.0с</span>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div class="input-container">
+        <div class="input-wrapper">
+          <textarea id="prompt-input" 
+                    class="prompt-input" 
+                    placeholder="Опишите желаемое изображение..." 
+                    rows="1" 
+                    maxlength="500"
+                    aria-label="Промпт для генерации изображения"
+                    aria-describedby="prompt-help"></textarea>
+          <button id="generate-btn" class="generate-btn" aria-label="Сгенерировать изображение" disabled>
+            <svg class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/>
+            </svg>
+          </button>
+        </div>
+        <div class="input-footer">
+          <div class="status-area">
+            <div id="status-message" class="status-message">Инициализация...</div>
+            <progress id="model-progress" class="model-progress" value="0" max="100" style="display: none;"></progress>
+          </div>
+          <div class="hint-text" id="prompt-help">
+            <span>WebGPU · Локально · Приватно</span>
+          </div>
+        </div>
+      </div>
+      <div class="advanced-toggle" id="advanced-toggle">
+        <button id="toggle-advanced-btn" class="text-btn" aria-expanded="false" aria-controls="advanced-options">
+          <span>Расширенные настройки</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9L12 15L18 9"/>
+          </svg>
+        </button>
+      </div>
+      <div id="advanced-options" class="advanced-options" style="display: none;" aria-hidden="true">
+        <div class="option-row">
+          <label for="width-input">Ширина (px):</label>
+          <input type="number" id="width-input" min="256" max="4096" step="64" value="3840" class="number-input">
+        </div>
+        <div class="option-row">
+          <label for="height-input">Высота (px):</label>
+          <input type="number" id="height-input" min="256" max="4096" step="64" value="2160" class="number-input">
+        </div>
+        <div class="option-row">
+          <label for="steps-input">Шаги (1-8):</label>
+          <input type="range" id="steps-input" min="1" max="8" value="4" step="1" class="slider">
+          <span id="steps-value">4</span>
+        </div>
+        <div class="option-row">
+          <label for="seed-input">Seed (пусто = случайный):</label>
+          <input type="text" id="seed-input" placeholder="случайный" class="text-input" maxlength="10">
+        </div>
+        <div class="option-row checkbox">
+          <input type="checkbox" id="guidance-checkbox" checked>
+          <label for="guidance-checkbox">Использовать guidance (точность)</label>
+        </div>
+        <div class="option-row checkbox">
+          <input type="checkbox" id="sharpen-checkbox" checked>
+          <label for="sharpen-checkbox">Улучшение резкости после апскейла</label>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Шаблон сообщения для динамического добавления -->
+  <template id="message-user-template">
+    <div class="message message-user">
+      <div class="message-content"></div>
+      <div class="message-avatar">👤</div>
+    </div>
+  </template>
+
+  <template id="message-ai-template">
+    <div class="message message-ai">
+      <div class="message-avatar">✨</div>
+      <div class="message-content"></div>
+    </div>
+  </template>
+
+  <!-- Инлайн скрипт для регистрации Service Worker и инициализации приложения -->
+  <script type="module">
+    // Импорт основных модулей для инициализации
+    import { initApp } from './ui-controller.js';
+    import { parseConfig } from './utils.js';
+    
+    // Проверка поддержки WebGPU и регистрация Service Worker
+    (async function initialize() {
+      // Регистрация Service Worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+          console.log('[Nebulix] Service Worker зарегистрирован:', registration.scope);
+          
+          // Ожидание активации SW
+          if (registration.installing) {
+            console.log('[Nebulix] Service Worker устанавливается');
+          } else if (registration.waiting) {
+            console.log('[Nebulix] Service Worker ожидает');
+          } else if (registration.active) {
+            console.log('[Nebulix] Service Worker активен');
+          }
+          
+          // Обработка обновлений SW
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[Nebulix] Доступно обновление. Обновите страницу.');
+                // Можно показать уведомление пользователю
+              }
+            });
+          });
+        } catch (error) {
+          console.error('[Nebulix] Ошибка регистрации Service Worker:', error);
+        }
+      }
+      
+      // Инициализация UI после загрузки DOM
+      window.addEventListener('DOMContentLoaded', async () => {
+        // Загружаем конфигурацию
+        const config = await parseConfig();
+        // Инициализируем приложение
+        initApp(config);
+      });
+    })();
+  </script>
+
+  <!-- Подключение основных модулей приложения -->
+  <script type="module" src="./config.json" charset="utf-8"></script>
+  <script type="module" src="./utils.js"></script>
+  <script type="module" src="./indexeddb-cache.js"></script>
+  <script type="module" src="./ui-controller.js"></script>
+  <script type="module" src="./nebula-engine.js"></script>
+</body>
+</html>
