@@ -1,0 +1,34 @@
+{
+  "model": "Xenova/stable-diffusion-turbo",
+  "modelFallback": "Xenova/stable-diffusion-turbo",
+  "defaultParams": {
+    "width": 512,
+    "height": 512,
+    "steps": 4,
+    "guidance": 0.0,
+    "seed": null
+  },
+  "maxResolution": 4096,
+  "cdnBaseUrl": "https://huggingface.co/Xenova/stable-diffusion-turbo/resolve/main",
+  "cacheVersion": "1.0.0",
+  "progressUpdateInterval": 200,
+  "maxRetries": 3,
+  "indexedDBName": "NebulixModelCache",
+  "supportedLanguages": ["ru", "en"],
+  "ui": {
+    "animationSpeed": "normal",
+    "showAdvancedOptions": false,
+    "autoSaveHistory": true
+  },
+  "limits": {
+    "maxPromptLength": 500,
+    "minPromptLength": 3,
+    "maxDailyGenerations": null
+  },
+  "features": {
+    "offlineMode": true,
+    "pwaInstall": true,
+    "webgpuRequired": false,
+    "wasmFallback": true
+  }
+}
